@@ -11,6 +11,9 @@ import ConfirmationService from 'primevue/confirmationservice';
 import DialogService from 'primevue/dialogservice'
 import apolloClient from './api/graphql/apollo-clients';
 import { ApolloClients } from '@vue/apollo-composable';
+import AppIcon from './components/custom/AppIcon.vue'
+import ButtonIcon from './components/custom/ButtonIcon.vue';
+import Button from "primevue/button"
 // import Menubar from 'primevue/menubar';
 
 // Vue.config.productionTip = false;
@@ -30,6 +33,9 @@ app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
 app.provide(ApolloClients, apolloClient)
+app.component('AppIcon', AppIcon)
+app.component('ButtonIcon', ButtonIcon)
+app.component('Button', Button)
 //app.component("Menubar", Menubar)
 app.mount('#app')
 

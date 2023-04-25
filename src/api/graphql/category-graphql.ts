@@ -28,7 +28,7 @@ function getCategoryGraphql(data: { keyword: string, pageable: object }) {
           }
       `,
     { ...data },
-    //{ fetchPolicy: 'network-only' }
+    { fetchPolicy: 'network-only' }
   );
 }
 
@@ -125,7 +125,7 @@ function getPacketCategoriesGraphql() {
           }
       `,
     {},
-    //{ fetchPolicy: 'network-only' }
+    { fetchPolicy: 'network-only' }
   );
 }
 
@@ -146,7 +146,7 @@ function getServiceCategoriesGraphql() {
           }
       `,
     {},
-    //{ fetchPolicy: 'network-only' }
+    { fetchPolicy: 'network-only' }
   );
 }
 
@@ -161,7 +161,7 @@ function getCategoryByIdGraphql() {
             }
         `,
     {},
-    //{ fetchPolicy: 'cache-and-network' }
+    { fetchPolicy: 'cache-and-network' }
   );
 }
 
