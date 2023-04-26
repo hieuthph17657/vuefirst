@@ -1,13 +1,25 @@
 
 <template>
     <div class='actions mr-3'>
-      <Button icon="pi pi-check" text raised rounded aria-label="Filter" @click='showCategoryFormDialog'/>
+      <Button icon="pi pi-plus" text raised rounded aria-label="Filter" @click='showCategoryFormDialog'/>
         <!-- <ButtonIcon
           v-tooltip.top='"Thêm mới"'
           icon='add_circle'
           rounded
           text
           @click='showCategoryFormDialog'/> -->
+      </div>
+      <div class='align-items-center flex flex-wrap justify-content-between'>
+        <span class='font-bold ml-2 text-primary text-white text-xl'></span>
+
+        <span class='block p-input-icon-left'>
+          <i class='pi pi-search'/>
+          <InputText
+            v-model='searchKeyword'
+            :placeholder='"search"'
+            v-on:change="searchDatatable"
+            @keyup.enter='searchDatatable'/>
+        </span>
       </div>
     <div class="card">
         <DataTable v-bind='DEFAULT_DATATABLE_CONFIG'
@@ -78,6 +90,7 @@ import Button from 'primevue/button';
 import CategoryForm from "./CategoryForm.vue";
 import { useConfirm } from 'primevue/useconfirm';
 import { DEFAULT_DATATABLE_CONFIG, DEFAULT_PAGE_SIZE } from '../../constants/index'
+import InputText from 'primevue/inputtext';
 
 const category = ref<CategoryInterface>(new Category());
 
@@ -150,6 +163,15 @@ function onSort(event: { sortField: string, sortOrder: number }) {
 
   });
   assign(searchParams, pageable);
+  reload();
+}
+
+function searchDatatable() {
+  assign(searchParams, {
+    keyword: searchKeyword.value,
+    pageable: { page: 0 }
+  });
+
   reload();
 }
 

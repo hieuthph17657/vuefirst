@@ -18,6 +18,7 @@ import Menu from 'primevue/menu';
 import Button from "primevue/button"
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
+import InputText from 'primevue/inputtext';
 // import Menubar from 'primevue/menubar';
 
 // Vue.config.productionTip = false;
@@ -44,6 +45,7 @@ app.component('Toast', Toast)
 app.component('MenuItem', MenuItem)
 app.component('Menu', Menu)
 app.component('ConfirmDialog', ConfirmDialog)
+app.component('InputText', InputText)
 //app.component("Menubar", Menubar)
 app.mount('#app')
 
