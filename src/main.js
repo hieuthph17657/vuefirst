@@ -3,7 +3,7 @@ import App from './App.vue'
 // import Vue from 'vue'
 // import VueRouter from 'vue-router'
 
-//import './assets/main.css'
+import './assets/main.css'
 import routes from './routes';
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
@@ -19,6 +19,8 @@ import Button from "primevue/button"
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
 import InputText from 'primevue/inputtext';
+import LabelRequired from './components/helper/directive/LabelRequired';
+import TreeSelect from 'primevue/treeselect';
 // import Menubar from 'primevue/menubar';
 
 // Vue.config.productionTip = false;
@@ -38,6 +40,7 @@ app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
 app.provide(ApolloClients, apolloClient)
+app.directive('required',LabelRequired)
 app.component('AppIcon', AppIcon)
 app.component('ButtonIcon', ButtonIcon)
 app.component('Button', Button)
@@ -46,6 +49,7 @@ app.component('MenuItem', MenuItem)
 app.component('Menu', Menu)
 app.component('ConfirmDialog', ConfirmDialog)
 app.component('InputText', InputText)
+app.component('TreeSelect', TreeSelect)
 //app.component("Menubar", Menubar)
 app.mount('#app')
 

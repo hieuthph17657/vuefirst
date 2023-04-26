@@ -32,12 +32,12 @@
         tableStyle="min-width: 50rem">
             <Column
               field='ordinalNumber'
-              header='#'>
+              header='#' :sortable='true'>
             </Column>
-            <Column field="name" header="Name" style="width: 25%"></Column>
-            <Column field="code" header="Code" style="width: 25%"></Column>
-            <Column field="description" header="Description" style="width: 25%"></Column>
-            <Column field="status" header="Status" style="width: 25%"></Column>
+            <Column field="name" header="Name" style="width: 25%" :sortable='true'></Column>
+            <Column field="code" header="Code" style="width: 25%" :sortable='true'></Column>
+            <Column field="description" header="Description" style="width: 25%" :sortable='true'></Column>
+            <Column field="status" header="Status" style="width: 25%" :sortable='true'></Column>
             <Column header="Action" style="width: 25%">
               <template #body='{data}'>
               <ButtonIcon
@@ -64,6 +64,7 @@
     <CategoryForm
     v-if='categoryFormVisible'
     :item='category'
+    :all-category-group='parentCategoryGroups'
     :visible-dialog='categoryFormVisible'
     @hide-dialog='hideCategoryFormDialog'
     @reload='reload'/>
@@ -84,7 +85,8 @@ import { Category, CategoryGroup } from '../../model/category';
 import MenuItem from "../custom/MenuItem.vue";
 
 // import { CategoryService } from '@/service/CategoryService';
-import { deleteCategoryGraphql, getCategoryGraphql } from '../../api/graphql/category-graphql';
+import { deleteCategoryGraphql, getCategoryGraphql} from '../../api/graphql/category-graphql';
+import { getAllCategoryGroupGraphql } from "../../api/graphql/category-group-graphql";
 import { assign, cloneDeep, find, get, toLower } from 'lodash';
 import Button from 'primevue/button';
 import CategoryForm from "./CategoryForm.vue";
@@ -188,6 +190,11 @@ function hideCategoryFormDialog() {
 }
 
 const parentCategoryGroups = ref<CategoryGroup[]>([]);
+const { onResult: getAllCategoryGroupResult } = getAllCategoryGroupGraphql();
+
+getAllCategoryGroupResult((response) => {
+  parentCategoryGroups.value = get(response, 'data.allCategoryGroup', []);
+});
 
 function editCategory() {
   categoryFormVisible.value = true;

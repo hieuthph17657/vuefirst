@@ -8,7 +8,7 @@
     @hide='emits("hide-dialog")'
   >
     <div class='p-fluid'>
-      <!-- <div class='field'>
+      <div class='field'>
         <label
           v-required
           for='categoryGroup'>CategoryGroup</label>
@@ -18,11 +18,11 @@
           :filter='true'
           input-id='categoryGroup'
           :options='categoryGroups'
-          :placeholder='"categoryGroup"'
+          :placeholder='"CategoryGroup"'
           show-clear
         />
         <ValidateErrorMessage :errors='v$.groupId.$errors'/>
-      </div> -->
+      </div>
 
       <div class='formgrid grid'>
         <div class='col field'>
@@ -50,7 +50,7 @@
           />
           <ValidateErrorMessage :errors='v$.name.$errors'/>
         </div>
-          <div class='col field'>
+        <div class='col field'>
           <label
             v-required
             for='description'>Description</label>
@@ -60,6 +60,13 @@
             v-trim
             :placeholder='"Description"'
           />
+        </div>
+        <div class='col field'>
+          <label
+            v-required
+            for='status'>Status</label>
+            <Dropdown v-model="category.status" :options="status" filter optionLabel="name" optionValue="code" placeholder="Select a status" class="w-full md:w-14rem">
+        </Dropdown>
         </div>
       </div>
     </div>
@@ -94,6 +101,9 @@ import DialogFooter from "../dialog/DialogFooter.vue";
 // import { toastError, toastErrorData, toastSuccess } from '@/helpers/custom-toast-service';
 // import { getStatuses, listToTree } from '@/helpers/utils';
 import type { CategoryGroup, CategoryGroupInterface, CategoryInterface } from '../../model/category';
+import Dropdown from 'primevue/dropdown';
+import TreeSelect from 'primevue/treeselect';
+import {listToTree} from '../helper/utils'
 
 const { handleSubmit, resetForm } = useForm();
 // const { value, errorMessage } = useField('value', validateField);
@@ -105,13 +115,13 @@ const items = ref([]);
 const props = withDefaults(defineProps<CategoryFormProps>(), {
   visibleDialog: false,
   item: undefined,
-  //allCategoryGroup: () => []
+  allCategoryGroup: () => []
 });
 
 interface CategoryFormProps {
   visibleDialog: boolean,
   item: CategoryInterface,
-  //allCategoryGroup: CategoryGroup[]
+  allCategoryGroup: CategoryGroup[]
 }
 
 const visible = ref(props.visibleDialog);
@@ -122,7 +132,7 @@ const emits = defineEmits(['hide-dialog', 'reload']);
 const validateRules = {
   code: { required: helpers.withMessage("Không được để trống", required) },
   name: { required: helpers.withMessage("Không được để trống", required) },
-//   groupId: { required: helpers.withMessage("Không được để trống", required) }
+  groupId: { required: helpers.withMessage("Không được để trống", required) }
 };
 
 const v$ = useVuelidate(validateRules, category);
@@ -130,17 +140,31 @@ const v$ = useVuelidate(validateRules, category);
 const categoryGroups = ref([]);
 const selectedCategoryGroup = ref();
 
+categoryGroups.value = listToTree(props.allCategoryGroup.map((categoryGroup: CategoryGroupInterface) => ({
+  key: categoryGroup.id,
+  label: categoryGroup.name,
+  data: categoryGroup.code,
+  parentId: categoryGroup.parentId,
+  children: []
+})), {
+  id: 'key',
+  parentId: 'parentId',
+  children: 'children' 
+});
+
+selectedCategoryGroup.value = isCreate ? null : { [category.value.groupId as string]: true };
+
 const headerDialog = isCreate ?
   "Create":"Edit";
 
-  const {
+const {
   mutate: saveCategoryMutate,
   onDone: saveCategoryDone,
   onError: saveCategoryError
 } = saveCategoryGraphql();
 
 function saveCategory() {
-  assign(category.value, { groupId: selectedCategoryGroup.value ? Object.keys(selectedCategoryGroup.value)[0] : 0 });
+  assign(category.value, { groupId: selectedCategoryGroup.value ? Object.keys(selectedCategoryGroup.value)[0] : null });
   v$.value.$validate().then((isValid) => {
     if (isValid) {
       saveCategoryMutate({
@@ -187,6 +211,12 @@ saveCategoryDone(() => {
 saveCategoryError((error) => {
   showError();
 });
+
+const selectedStatus = ref();
+const status = ref([
+    { name: 'Hoạt động', code: 'ACTIVE' },
+    { name: 'Không hoạt động', code: 'DEACTIVATE' },
+]);
 
 </script>
 <script lang="ts">
