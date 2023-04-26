@@ -84,7 +84,8 @@ function saveCategoryGraphql() {
                   status
               }
           }
-      `);
+      `
+      );
 }
 
 function deleteCategoryGraphql() {
@@ -101,7 +102,8 @@ function deleteCategoryGraphql() {
                   status
               }
           }
-      `);
+      `
+      );
 }
 
 function getPacketCategoriesGraphql() {

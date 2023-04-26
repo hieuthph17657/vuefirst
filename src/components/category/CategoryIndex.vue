@@ -10,12 +10,44 @@
           @click='showCategoryFormDialog'/> -->
       </div>
     <div class="card">
-        <DataTable :value="categories" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+        <DataTable v-bind='DEFAULT_DATATABLE_CONFIG'
+        lazy
+        :loading='getCategoryLoading'
+        :total-records='totalRecords'
+        :value="categories"  
+        @page='onPage($event)' 
+        @sort='onSort($event)'
+        tableStyle="min-width: 50rem">
+            <Column
+              field='ordinalNumber'
+              header='#'>
+            </Column>
             <Column field="name" header="Name" style="width: 25%"></Column>
             <Column field="code" header="Code" style="width: 25%"></Column>
             <Column field="description" header="Description" style="width: 25%"></Column>
             <Column field="status" header="Status" style="width: 25%"></Column>
+            <Column header="Action" style="width: 25%">
+              <template #body='{data}'>
+              <ButtonIcon
+                v-tooltip.top='"Action"'
+                class='text-color'
+                icon='list'
+                rounded
+                text
+                @click='toggleActionMenu({event : $event, data : data})'/>
+              </template>
+            </Column>
         </DataTable>
+        <Menu
+          ref='menuAction'
+          :model='menuActions'
+          :popup='true'>
+          <template #item='{item: {icon, label}}'>
+            <MenuItem
+              :icon='icon'
+              :label='label'/>
+          </template>
+        </Menu>
     </div>
     <CategoryForm
     v-if='categoryFormVisible'
@@ -23,6 +55,8 @@
     :visible-dialog='categoryFormVisible'
     @hide-dialog='hideCategoryFormDialog'
     @reload='reload'/>
+    <Toast />
+    <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script setup lang="ts">
@@ -35,12 +69,15 @@ import ColumnGroup from 'primevue/columngroup';   // optional
 import Row from 'primevue/row';                   // optional
 import type {CategoryEdge,  CategoryInterface} from '../../model/category';
 import { Category, CategoryGroup } from '../../model/category';
+import MenuItem from "../custom/MenuItem.vue";
 
 // import { CategoryService } from '@/service/CategoryService';
-import { getCategoryGraphql } from '../../api/graphql/category-graphql';
+import { deleteCategoryGraphql, getCategoryGraphql } from '../../api/graphql/category-graphql';
 import { assign, cloneDeep, find, get, toLower } from 'lodash';
 import Button from 'primevue/button';
 import CategoryForm from "./CategoryForm.vue";
+import { useConfirm } from 'primevue/useconfirm';
+import { DEFAULT_DATATABLE_CONFIG, DEFAULT_PAGE_SIZE } from '../../constants/index'
 
 const category = ref<CategoryInterface>(new Category());
 
@@ -50,7 +87,7 @@ const getCategoryLoading = ref(true);
 const categories = ref([]);
 const pageable = reactive({
   page: 0,
-  size: 10,
+  size: 100,
   sort: [
     {
       property: 'server',
@@ -99,6 +136,24 @@ function onPage(event: { page: number, rows: number }) {
   assign(searchParams, pageable);
   reload();
 }
+
+function onSort(event: { sortField: string, sortOrder: number }) {
+  const { sortField, sortOrder } = event;
+  assign(pageable, {
+    page: 0,
+    sort: [
+      {
+        property: sortField,
+        direction: sortOrder === 1 ? 'ASC' : 'DESC'
+      }
+    ]
+
+  });
+  assign(searchParams, pageable);
+  reload();
+}
+
+
 const categoryFormVisible = ref(false);
 
 function showCategoryFormDialog() {
@@ -111,10 +166,51 @@ function hideCategoryFormDialog() {
 }
 
 const parentCategoryGroups = ref<CategoryGroup[]>([]);
-// onMounted(() => {
-//     CategoryService.getCategorysMedium().then((data) => (category.value = data));
-// });
 
-// const category = ref();
+function editCategory() {
+  categoryFormVisible.value = true;
+}
+
+const {
+  mutate: deleteCategoryMutate,
+  // onDone: deleteCategoryDone,
+  // onError: deleteCategoryError
+} = deleteCategoryGraphql();
+
+const confirm = useConfirm();
+
+function deleteCategory() {
+  confirm.require({
+    message: "Confirm delete",
+    header: "Confirm",
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      deleteCategoryMutate({ id: category.value.id });
+    }
+  });
+}
+
+const menuAction = ref();
+const menuActions = [
+  {
+    label:"Edit",
+    icon: 'edit',
+    command: () => {
+      editCategory();
+    }
+  },
+  {
+    label:"Delete",
+    icon: 'delete',
+    command: () => {
+      deleteCategory();
+    }
+  }
+];
+
+function toggleActionMenu({ event, data }: { event: Event, data: CategoryInterface }) {
+  menuAction.value.toggle(event);
+  category.value = cloneDeep(data);
+}
 
 </script>

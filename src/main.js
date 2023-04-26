@@ -13,7 +13,11 @@ import apolloClient from './api/graphql/apollo-clients';
 import { ApolloClients } from '@vue/apollo-composable';
 import AppIcon from './components/custom/AppIcon.vue'
 import ButtonIcon from './components/custom/ButtonIcon.vue';
+import MenuItem from './components/custom/MenuItem.vue';
+import Menu from 'primevue/menu';
 import Button from "primevue/button"
+import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 // import Menubar from 'primevue/menubar';
 
 // Vue.config.productionTip = false;
@@ -36,6 +40,10 @@ app.provide(ApolloClients, apolloClient)
 app.component('AppIcon', AppIcon)
 app.component('ButtonIcon', ButtonIcon)
 app.component('Button', Button)
+app.component('Toast', Toast)
+app.component('MenuItem', MenuItem)
+app.component('Menu', Menu)
+app.component('ConfirmDialog', ConfirmDialog)
 //app.component("Menubar", Menubar)
 app.mount('#app')
 

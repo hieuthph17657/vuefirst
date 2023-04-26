@@ -28,9 +28,9 @@
     otherButtons,
     actionButton
   } = inject('dialogFooterButtons', {
-    closeButton: { command: Function, icon: '' },
+    closeButton: { command: Function, icon: 'delete', iconSize: "1"},
     otherButtons: [{ command: Function, icon: '' }],
-    actionButton: { command: Function, icon: '' }
+    actionButton: { command: Function, icon: 'add' ,iconSize: "1"}
   });
   </script>
   
