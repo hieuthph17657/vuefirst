@@ -95,3 +95,10 @@ export interface CategoryOption {
   order: number,
   parentId: string
 }
+
+export interface CategoryTreeView {
+  key: string,
+  label: string,
+  data: string,
+  children: []
+}

@@ -14,8 +14,15 @@
   </div>
   <div class="card">
     <div>
-      <Toast />
-      <Tree :value="categoryGroups" selectionMode="checkbox" class="w-full md:w-30rem"></Tree>
+      <Tree 
+      v-model:selectionKeys="selectedKey" 
+      v-model:expandedKeys='expandedFunctions'
+      :value="categoryGroups" 
+      selectionMode="checkbox" 
+      :metaKeySelection="false"
+      @nodeSelect="onNodeSelect" 
+      @nodeUnselect="onNodeUnselect"
+      class="w-full md:w-30rem"/>
     </div>
     <DataTable v-bind='DEFAULT_DATATABLE_CONFIG' lazy :loading='getCategoryLoading' :total-records='totalRecords'
       :value="categories" @page='onPage($event)' @sort='onSort($event)' tableStyle="min-width: 50rem">
@@ -51,7 +58,7 @@ import { reactive, ref } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import type { CategoryEdge, CategoryInterface } from '../../model/category';
-import { Category, CategoryGroup, CategoryGroupInterface } from '../../model/category';
+import { Category, CategoryGroup, CategoryGroupInterface, CategoryTreeView } from '../../model/category';
 import MenuItem from "../custom/MenuItem.vue";
 import { deleteCategoryGraphql, getCategoryGraphql } from '../../api/graphql/category-graphql';
 import { getAllCategoryGroupGraphql } from "../../api/graphql/category-group-graphql";
@@ -63,8 +70,39 @@ import { DEFAULT_DATATABLE_CONFIG, DEFAULT_PAGE_SIZE } from '../../constants/ind
 import InputText from 'primevue/inputtext';
 import { useToast } from "primevue/usetoast";
 import { listToTree } from '../helper/utils';
+import Tree from "primevue/tree";
+import type { TreeExpandedKeys, TreeSelectionKeys } from 'primevue/tree';
+
+const selectedKey = ref<TreeSelectionKeys>({});
+const expandedFunctions = ref<TreeExpandedKeys>({});
+const toast = useToast();
+var listCheck:String[]=[];
+const onNodeSelect = (node) => {
+    toast.add({ severity: 'success', summary: 'Node Selected', detail: node.label, life: 3000 });
+    listCheck.push(node.key)
+    console.log("listCheck", listCheck)
+    assign(searchParams, {
+      keyword: node.key,
+      pageable: { page: 0 }
+    });
+
+    reload();
+};
+
+const onNodeUnselect = (node) => {
+    toast.add({ severity: 'success', summary: 'Node Unselected', detail: node.label, life: 3000 });
+    listCheck=listCheck.filter(it=>it!=node.key)
+    console.log("listCheck2", listCheck)
+    assign(searchParams, {
+      keyword: "",
+      pageable: { page: 0 }
+    });
+
+    reload();
+};
 
 const categoryGroups = ref([]);
+var categoryGroupsView = [{}];
 const parentCategoryGroups = ref<CategoryGroup[]>([]);
 const { onResult: getAllCategoryGroupResult } = getAllCategoryGroupGraphql();
 var parentCategoryGroupsView: CategoryGroup[] = [];
@@ -87,6 +125,15 @@ function mapTreeView(){
       parentId: 'parentId',
       children: 'children'
     });
+    console.log("categoryGroups.value",categoryGroups.value)
+
+    // categoryGroupsView =categoryGroups.value.map((categoryGroup: CategoryTreeView) => ({
+    //   key: categoryGroup.key,
+    //   label: categoryGroup.label,
+    //   data: categoryGroup.data,
+    //   children: categoryGroup.children
+    // }))
+    // console.log("categoryGroupsView",categoryGroupsView)
 } 
 
 const category = ref<CategoryInterface>(new Category());
@@ -145,8 +192,13 @@ function onPage(event: { page: number, rows: number }) {
     page,
     size: rows,
   });
-  assign(searchParams, pageable);
-  reload();
+  if(listCheck.length>0){
+    assign(searchParams, pageable);
+    reload();
+  }else{
+    assign(searchParams, pageable);
+    reload();
+  }
 }
 
 function onSort(event: { sortField: string, sortOrder: number }) {
