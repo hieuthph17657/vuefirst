@@ -151,6 +151,14 @@ categoryGroups.value = listToTree(props.allCategoryGroup.map((categoryGroup: Cat
   parentId: 'parentId',
   children: 'children' 
 });
+console.log("categoryGroupsForm",props.allCategoryGroup)
+console.log("props.allCategoryGroupForm",(props.allCategoryGroup.map((categoryGroup: CategoryGroupInterface) => ({
+  key: categoryGroup.id,
+  label: categoryGroup.name,
+  data: categoryGroup.code,
+  parentId: categoryGroup.parentId,
+  children: []
+}))));
 
 selectedCategoryGroup.value = isCreate ? null : { [category.value.groupId as string]: true };
 

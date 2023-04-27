@@ -1,75 +1,47 @@
 
 <template>
-    <div class='actions mr-3'>
-      <Button icon="pi pi-plus" text raised rounded aria-label="Filter" @click='showCategoryFormDialog'/>
-        <!-- <ButtonIcon
-          v-tooltip.top='"Thêm mới"'
-          icon='add_circle'
-          rounded
-          text
-          @click='showCategoryFormDialog'/> -->
-      </div>
-      <div class='align-items-center flex flex-wrap justify-content-between'>
-        <span class='font-bold ml-2 text-primary text-white text-xl'></span>
+  <div class='actions mr-3'>
+    <Button icon="pi pi-plus" text raised rounded aria-label="Filter" @click='showCategoryFormDialog' />
+  </div>
+  <div class='align-items-center flex flex-wrap justify-content-between'>
+    <span class='font-bold ml-2 text-primary text-white text-xl'></span>
 
-        <span class='block p-input-icon-left'>
-          <i class='pi pi-search'/>
-          <InputText
-            v-model='searchKeyword'
-            :placeholder='"search"'
-            v-on:change="searchDatatable"
-            @keyup.enter='searchDatatable'/>
-        </span>
-      </div>
-    <div class="card">
-        <DataTable v-bind='DEFAULT_DATATABLE_CONFIG'
-        lazy
-        :loading='getCategoryLoading'
-        :total-records='totalRecords'
-        :value="categories"  
-        @page='onPage($event)' 
-        @sort='onSort($event)'
-        tableStyle="min-width: 50rem">
-            <Column
-              field='ordinalNumber'
-              header='#' :sortable='true'>
-            </Column>
-            <Column field="name" header="Name" style="width: 25%" :sortable='true'></Column>
-            <Column field="code" header="Code" style="width: 25%" :sortable='true'></Column>
-            <Column field="description" header="Description" style="width: 25%" :sortable='true'></Column>
-            <Column field="status" header="Status" style="width: 25%" :sortable='true'></Column>
-            <Column header="Action" style="width: 25%">
-              <template #body='{data}'>
-              <ButtonIcon
-                v-tooltip.top='"Action"'
-                class='text-color'
-                icon='list'
-                rounded
-                text
-                @click='toggleActionMenu({event : $event, data : data})'/>
-              </template>
-            </Column>
-        </DataTable>
-        <Menu
-          ref='menuAction'
-          :model='menuActions'
-          :popup='true'>
-          <template #item='{item: {icon, label}}'>
-            <MenuItem
-              :icon='icon'
-              :label='label'/>
-          </template>
-        </Menu>
+    <span class='block p-input-icon-left'>
+      <i class='pi pi-search' />
+      <InputText v-model='searchKeyword' :placeholder='"search"' v-on:change="searchDatatable"
+        @keyup.enter='searchDatatable' />
+    </span>
+  </div>
+  <div class="card">
+    <div>
+      <Toast />
+      <Tree :value="categoryGroups" selectionMode="checkbox" class="w-full md:w-30rem"></Tree>
     </div>
-    <CategoryForm
-    v-if='categoryFormVisible'
-    :item='category'
-    :all-category-group='parentCategoryGroups'
-    :visible-dialog='categoryFormVisible'
-    @hide-dialog='hideCategoryFormDialog'
-    @reload='reload'/>
-    <Toast />
-    <ConfirmDialog></ConfirmDialog>
+    <DataTable v-bind='DEFAULT_DATATABLE_CONFIG' lazy :loading='getCategoryLoading' :total-records='totalRecords'
+      :value="categories" @page='onPage($event)' @sort='onSort($event)' tableStyle="min-width: 50rem">
+      <Column field='ordinalNumber' header='#'>
+      </Column>
+      <Column field="name" header="Name" style="width: 25%" :sortable='true'></Column>
+      <Column field="code" header="Code" style="width: 25%" :sortable='true'></Column>
+      <Column field="description" header="Description" style="width: 25%" :sortable='true'></Column>
+      <Column field="status" header="Status" style="width: 25%" :sortable='true'></Column>
+      <Column header="Action" style="width: 25%">
+        <template #body='{ data }'>
+          <ButtonIcon v-tooltip.top='"Thao tác"' class='text-color' icon='list' rounded text
+            @click='toggleActionMenu({ event: $event, data: data })' />
+        </template>
+      </Column>
+    </DataTable>
+    <Menu ref='menuAction' :model='menuActions' :popup='true'>
+      <template #item='{ item: { icon, label } }'>
+        <MenuItem :icon='icon' :label='label' />
+      </template>
+    </Menu>
+  </div>
+  <CategoryForm v-if='categoryFormVisible' :item='category' :all-category-group='parentCategoryGroups'
+    :visible-dialog='categoryFormVisible' @hide-dialog='hideCategoryFormDialog' @reload='reload' />
+  <Toast />
+  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script setup lang="ts">
@@ -78,28 +50,51 @@ import "primevue/resources/primevue.min.css";
 import { reactive, ref } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import ColumnGroup from 'primevue/columngroup';   // optional
-import Row from 'primevue/row';                   // optional
-import type {CategoryEdge,  CategoryInterface} from '../../model/category';
-import { Category, CategoryGroup } from '../../model/category';
+import type { CategoryEdge, CategoryInterface } from '../../model/category';
+import { Category, CategoryGroup, CategoryGroupInterface } from '../../model/category';
 import MenuItem from "../custom/MenuItem.vue";
-
-// import { CategoryService } from '@/service/CategoryService';
-import { deleteCategoryGraphql, getCategoryGraphql} from '../../api/graphql/category-graphql';
+import { deleteCategoryGraphql, getCategoryGraphql } from '../../api/graphql/category-graphql';
 import { getAllCategoryGroupGraphql } from "../../api/graphql/category-group-graphql";
 import { assign, cloneDeep, find, get, toLower } from 'lodash';
 import Button from 'primevue/button';
 import CategoryForm from "./CategoryForm.vue";
 import { useConfirm } from 'primevue/useconfirm';
-import { DEFAULT_DATATABLE_CONFIG, DEFAULT_PAGE_SIZE } from '../../constants/index'
+import { DEFAULT_DATATABLE_CONFIG, DEFAULT_PAGE_SIZE } from '../../constants/index' //used
 import InputText from 'primevue/inputtext';
+import { useToast } from "primevue/usetoast";
+import { listToTree } from '../helper/utils';
+
+const categoryGroups = ref([]);
+const parentCategoryGroups = ref<CategoryGroup[]>([]);
+const { onResult: getAllCategoryGroupResult } = getAllCategoryGroupGraphql();
+var parentCategoryGroupsView: CategoryGroup[] = [];
+
+getAllCategoryGroupResult((response) => {
+  parentCategoryGroups.value = get(response, 'data.allCategoryGroup', []);
+  parentCategoryGroupsView = get(response, 'data.allCategoryGroup', []);
+  mapTreeView()
+});
+
+function mapTreeView(){
+  categoryGroups.value = listToTree(parentCategoryGroupsView.map((categoryGroup: CategoryGroupInterface) => ({
+      key: categoryGroup.id,
+      label: categoryGroup.name,
+      data: categoryGroup.code,
+      parentId: categoryGroup.parentId,
+      children: []
+    })), {
+      id: 'key',
+      parentId: 'parentId',
+      children: 'children'
+    });
+} 
 
 const category = ref<CategoryInterface>(new Category());
-
+const categories = ref([]);
 const searchKeyword = ref('');
 const totalRecords = ref(0);
 const getCategoryLoading = ref(true);
-const categories = ref([]);
+
 const pageable = reactive({
   page: 0,
   size: 100,
@@ -110,20 +105,22 @@ const pageable = reactive({
     }
   ]
 });
+
 const searchParams = reactive({
   keyword: '',
   pageable: pageable
 });
+
 const {
   onResult: getCategoryResult,
   onError: getCategoryError,
   refetch: getCategoryRefetch
 } = getCategoryGraphql(searchParams);
-console.log("searchParams",searchParams);
+console.log("searchParams", searchParams);
 
 getCategoryResult((result) => {
   const { totalCount, edges } = get(result, 'data.categories', { totalCount: 0, edges: [] });
-  console.log("totalCount",totalCount)
+  console.log("totalCount", totalCount)
   totalRecords.value = totalCount;
   categories.value = edges.map((edge: CategoryEdge, index: number) => ({
     ...edge.node,
@@ -177,7 +174,6 @@ function searchDatatable() {
   reload();
 }
 
-
 const categoryFormVisible = ref(false);
 
 function showCategoryFormDialog() {
@@ -188,13 +184,6 @@ function hideCategoryFormDialog() {
   categoryFormVisible.value = false;
   assign(category.value, new Category());
 }
-
-const parentCategoryGroups = ref<CategoryGroup[]>([]);
-const { onResult: getAllCategoryGroupResult } = getAllCategoryGroupGraphql();
-
-getAllCategoryGroupResult((response) => {
-  parentCategoryGroups.value = get(response, 'data.allCategoryGroup', []);
-});
 
 function editCategory() {
   categoryFormVisible.value = true;
@@ -219,17 +208,18 @@ function deleteCategory() {
   });
 }
 
+//actionTable
 const menuAction = ref();
 const menuActions = [
   {
-    label:"Edit",
+    label: "Edit",
     icon: 'edit',
     command: () => {
       editCategory();
     }
   },
   {
-    label:"Delete",
+    label: "Delete",
     icon: 'delete',
     command: () => {
       deleteCategory();
@@ -237,6 +227,7 @@ const menuActions = [
   }
 ];
 
+//onClick
 function toggleActionMenu({ event, data }: { event: Event, data: CategoryInterface }) {
   menuAction.value.toggle(event);
   category.value = cloneDeep(data);

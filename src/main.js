@@ -21,6 +21,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import InputText from 'primevue/inputtext';
 import LabelRequired from './components/helper/directive/LabelRequired';
 import TreeSelect from 'primevue/treeselect';
+import Tooltip from 'primevue/tooltip';
+import Tree from 'primevue/tree';
 // import Menubar from 'primevue/menubar';
 
 // Vue.config.productionTip = false;
@@ -50,6 +52,8 @@ app.component('Menu', Menu)
 app.component('ConfirmDialog', ConfirmDialog)
 app.component('InputText', InputText)
 app.component('TreeSelect', TreeSelect)
+app.directive('tooltip', Tooltip)
+app.component('Tree', Tree)
 //app.component("Menubar", Menubar)
 app.mount('#app')
 
