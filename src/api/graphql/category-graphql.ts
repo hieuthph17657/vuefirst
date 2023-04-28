@@ -6,11 +6,11 @@ import { ref } from 'vue';
 
 provideApolloClient(apolloClient);
 
-function getCategoryGraphql(data: { keyword: string, pageable: object }) {
+function getCategoryGraphql(data: {groupIds:string[], keyword: string, pageable: object }) {
   return useQuery(
     gql`
-          query ($keyword: String!, $pageable: Pageable) {
-              categories(keyword: $keyword, pageable: $pageable) {
+          query ($groupIds: [String]!, $keyword: String!, $pageable: Pageable) {
+            categoriesNameIn(groupIds: $groupIds, keyword: $keyword, pageable: $pageable) {
                   totalCount
                   edges {
                       node {

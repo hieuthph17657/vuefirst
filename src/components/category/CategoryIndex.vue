@@ -25,7 +25,7 @@
       class="w-full md:w-30rem"/>
     </div>
     <DataTable v-bind='DEFAULT_DATATABLE_CONFIG' lazy :loading='getCategoryLoading' :total-records='totalRecords'
-      :value="categories" @page='onPage($event)' @sort='onSort($event)' tableStyle="min-width: 50rem">
+      :value="categoriesNameIn" @page='onPage($event)' @sort='onSort($event)' tableStyle="min-width: 50rem">
       <Column field='ordinalNumber' header='#'>
       </Column>
       <Column field="name" header="Name" style="width: 25%" :sortable='true'></Column>
@@ -82,7 +82,7 @@ const onNodeSelect = (node) => {
     listCheck.push(node.key)
     console.log("listCheck", listCheck)
     assign(searchParams, {
-      keyword: node.key,
+      groupIds: listCheck,
       pageable: { page: 0 }
     });
 
@@ -94,7 +94,7 @@ const onNodeUnselect = (node) => {
     listCheck=listCheck.filter(it=>it!=node.key)
     console.log("listCheck2", listCheck)
     assign(searchParams, {
-      keyword: "",
+      groupIds: listCheck,
       pageable: { page: 0 }
     });
 
@@ -137,7 +137,7 @@ function mapTreeView(){
 } 
 
 const category = ref<CategoryInterface>(new Category());
-const categories = ref([]);
+const categoriesNameIn = ref([]);
 const searchKeyword = ref('');
 const totalRecords = ref(0);
 const getCategoryLoading = ref(true);
@@ -154,6 +154,7 @@ const pageable = reactive({
 });
 
 const searchParams = reactive({
+  groupIds:[],
   keyword: '',
   pageable: pageable
 });
@@ -166,10 +167,10 @@ const {
 console.log("searchParams", searchParams);
 
 getCategoryResult((result) => {
-  const { totalCount, edges } = get(result, 'data.categories', { totalCount: 0, edges: [] });
+  const { totalCount, edges } = get(result, 'data.categoriesNameIn', { totalCount: 0, edges: [] });
   console.log("totalCount", totalCount)
   totalRecords.value = totalCount;
-  categories.value = edges.map((edge: CategoryEdge, index: number) => ({
+  categoriesNameIn.value = edges.map((edge: CategoryEdge, index: number) => ({
     ...edge.node,
     ordinalNumber: pageable.page * pageable.size + index + 1
   }));
@@ -188,17 +189,17 @@ function reload() {
 
 function onPage(event: { page: number, rows: number }) {
   const { page, rows } = event;
-  assign(pageable, {
-    page,
-    size: rows,
-  });
-  if(listCheck.length>0){
-    assign(searchParams, pageable);
+  console.log("searchParams1", searchParams)
+  // assign(pageable, {
+  //   page,
+  //   size: rows,
+  // });
+    assign(searchParams, {groupIds: listCheck, pageable:{
+      page,
+      size: rows,
+    }});
+    console.log("searchParams2", searchParams)
     reload();
-  }else{
-    assign(searchParams, pageable);
-    reload();
-  }
 }
 
 function onSort(event: { sortField: string, sortOrder: number }) {
